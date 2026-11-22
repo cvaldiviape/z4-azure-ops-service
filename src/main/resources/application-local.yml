@@ -1,0 +1,9 @@
+spring:
+  datasource:
+    url: ${OPS_DB_URL:jdbc:postgresql://localhost:5437/ops_db}
+    username: ${OPS_DB_USERNAME:ecommerce}
+    password: ${OPS_DB_PASSWORD:ecommerce}
+
+logging:
+  file:
+    name: ${LOG_FILE:logs/ops-service.log}
