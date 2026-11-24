@@ -56,11 +56,6 @@ public class DeadLetterController {
         return ok("DEAD_LETTER_DISCARDED", "Dead letter message discarded successfully", this.deadLetterService.discard(id, operatorOf(jwt), requestDto.note()));
     }
 
-    // Queda registrado quién resolvió el mensaje: su email, o su id si el token no lo trae.
-    private static String operatorOf(Jwt jwt) {
-        return Objects.requireNonNullElse(jwt.getClaimAsString("email"), jwt.getSubject());
-    }
-
     private static <T> ResponseDto<T> ok(String code, String message, T data) {
         return ResponseDto.<T>builder()
                 .code(code)
@@ -68,5 +63,10 @@ public class DeadLetterController {
                 .message(message)
                 .data(data)
                 .build();
+    }
+
+    // Queda registrado quién resolvió el mensaje: su email, o su id si el token no lo trae.
+    private static String operatorOf(Jwt jwt) {
+        return Objects.requireNonNullElse(jwt.getClaimAsString("email"), jwt.getSubject());
     }
 }
