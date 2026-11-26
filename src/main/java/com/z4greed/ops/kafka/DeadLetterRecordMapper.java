@@ -54,17 +54,6 @@ public class DeadLetterRecordMapper {
                 .build();
     }
 
-    private String resolveOriginalTopic(ConsumerRecord<String, String> deadLetterRecord) {
-        String originalTopic = DeadLetterHeaders.text(deadLetterRecord.headers(), KafkaHeaders.DLT_ORIGINAL_TOPIC);
-        if (originalTopic != null) {
-            return originalTopic;
-        }
-        String deadLetterTopic = deadLetterRecord.topic();
-        return deadLetterTopic.endsWith(DLT_SUFFIX)
-                ? deadLetterTopic.substring(0, deadLetterTopic.length() - DLT_SUFFIX.length())
-                : deadLetterTopic;
-    }
-
     // Un payload que no es JSON también se guarda: justamente puede ser el motivo por el que llegó al DLT.
     private JsonNode parseEvent(String payload) {
         if (payload == null) {
@@ -77,13 +66,15 @@ public class DeadLetterRecordMapper {
         }
     }
 
-    private Long parseReplayOfId(Headers headers) {
-        String replayOfId = DeadLetterHeaders.text(headers, DeadLetterHeaders.REPLAY_OF_ID);
-        try {
-            return replayOfId == null ? null : Long.valueOf(replayOfId);
-        } catch (NumberFormatException exception) {
-            return null;
+    private String resolveOriginalTopic(ConsumerRecord<String, String> deadLetterRecord) {
+        String originalTopic = DeadLetterHeaders.text(deadLetterRecord.headers(), KafkaHeaders.DLT_ORIGINAL_TOPIC);
+        if (originalTopic != null) {
+            return originalTopic;
         }
+        String deadLetterTopic = deadLetterRecord.topic();
+        return deadLetterTopic.endsWith(DLT_SUFFIX)
+                ? deadLetterTopic.substring(0, deadLetterTopic.length() - DLT_SUFFIX.length())
+                : deadLetterTopic;
     }
 
     private static String text(JsonNode event, String fieldName) {
@@ -99,5 +90,14 @@ public class DeadLetterRecordMapper {
 
     private static LocalDateTime toLocalDateTime(long epochMilliseconds) {
         return epochMilliseconds <= 0 ? null : LocalDateTime.ofInstant(Instant.ofEpochMilli(epochMilliseconds), ZoneId.systemDefault());
+    }
+
+    private Long parseReplayOfId(Headers headers) {
+        String replayOfId = DeadLetterHeaders.text(headers, DeadLetterHeaders.REPLAY_OF_ID);
+        try {
+            return replayOfId == null ? null : Long.valueOf(replayOfId);
+        } catch (NumberFormatException exception) {
+            return null;
+        }
     }
 }
